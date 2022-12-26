@@ -12,10 +12,55 @@ import {
   cilPuzzle,
   cilSpeedometer,
   cilStar,
+  cilAddressBook,
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 
 const _nav = [
+  {
+    component: CNavTitle,
+    name: 'Custom fields',
+  },
+  {
+    component: CNavItem,
+    name: 'Statistic', // may change to dashboard shortly
+    to: '/statistic',
+    icon: <CIcon icon={cilAddressBook} customClassName="nav-icon" />,
+    badge: {
+      color: 'info',
+      text: 'WORKING',
+    },
+  },
+  {
+    component: CNavItem,
+    name: 'Producer',
+    to: '/producer',
+    icon: <CIcon icon={cilAddressBook} customClassName="nav-icon" />,
+    badge: {
+      color: 'info',
+      text: 'WORKING',
+    },
+  },
+  {
+    component: CNavItem,
+    name: 'Distributor',
+    to: '/distributor',
+    icon: <CIcon icon={cilAddressBook} customClassName="nav-icon" />,
+    badge: {
+      color: 'info',
+      text: 'WORKING',
+    },
+  },
+  {
+    component: CNavItem,
+    name: 'Warranty Center',
+    to: '/warranty-center',
+    icon: <CIcon icon={cilAddressBook} customClassName="nav-icon" />,
+    badge: {
+      color: 'info',
+      text: 'WORKING',
+    },
+  },
   {
     component: CNavItem,
     name: 'Dashboard',

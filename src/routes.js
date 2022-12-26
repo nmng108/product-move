@@ -1,5 +1,10 @@
 import React from 'react'
 
+const Statistic = React.lazy(() => import('./views/statistic/Statistic'))
+const Producer = React.lazy(() => import('./views/producer/Producer'))
+// const Distributor = React.lazy(() => import('./views/distributor/Distributor'))
+// const WarrantyCenter = React.lazy(() => import('./views/warranty-center/WarrantyCenter'))
+
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const Colors = React.lazy(() => import('./views/theme/colors/Colors'))
 const Typography = React.lazy(() => import('./views/theme/typography/Typography'))
@@ -52,6 +57,10 @@ const Widgets = React.lazy(() => import('./views/widgets/Widgets'))
 
 const routes = [
   { path: '/', exact: true, name: 'Home' },
+  { path: '/statistic', name: 'Statistic', element: Statistic },
+  { path: '/producer', name: 'Producer', element: Producer },
+  // { path: '/distributor', name: 'Distributor', element: Distributor },
+  // { path: '/warranty-center', name: 'Warranty Center', element: WarrantyCenter },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
   { path: '/theme', name: 'Theme', element: Colors, exact: true },
   { path: '/theme/colors', name: 'Colors', element: Colors },
