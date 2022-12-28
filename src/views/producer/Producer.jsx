@@ -1,3 +1,7 @@
+/**
+ * This component renders table for managing producers/manufactories.
+ * TODO: add state(or sth) to save existing record's data and pass to modal
+ */
 import React from 'react'
 
 import {
@@ -22,7 +26,6 @@ import { CChartLine } from '@coreui/react-chartjs'
 import { getStyle, hexToRgba } from '@coreui/utils'
 import CIcon from '@coreui/icons-react'
 
-import WidgetsDropdown from '../widgets/WidgetsDropdown'
 import {
   cibCcAmex,
   cibCcApplePay,
@@ -65,7 +68,7 @@ class Producer extends React.Component {
       // get data from api
       dataset: [
         {
-          avatar: { src: avatar1, status: 'success' },
+          avatar: { src: avatar1 },
           producer: {
             name: 'Nhà máy A',
             new: false,
@@ -83,9 +86,15 @@ class Producer extends React.Component {
     this.modalRef = React.createRef()
   }
 
-  // return data taken from api
+  componentDidMount() {
+    this.getData()
+  }
+
+  // get data from api and setState
   getData() {
-    //
+    // fetch('')
+    //   .then((res) => res.json())
+    //   .then(res => this.setState({ dataset: }))
   }
 
   render() {

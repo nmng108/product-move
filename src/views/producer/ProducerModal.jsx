@@ -1,4 +1,7 @@
-/* eslint-disable react/prop-types */
+/**
+ * This component renders a modal for add new producer/manufactory or alter an existing one.
+ * TODO: get record's data and render to form inputs
+ */
 import { CButton, CModal, CModalBody, CModalFooter, CModalHeader } from '@coreui/react'
 import React from 'react'
 import { PropTypes } from 'prop-types'
@@ -12,6 +15,7 @@ class ProducerModal extends React.Component {
     }
   }
 
+  // executed after rendering
   componentDidMount() {
     // this.setState({
     //   isShown: this.props.show,
@@ -21,6 +25,15 @@ class ProducerModal extends React.Component {
 
   toggle() {
     this.setState({ visible: !this.state.visible })
+  }
+
+  handleConfirmButton() {
+    fetch('').then((res) => {
+      if (res.status === 204) {
+        this.toggle()
+      }
+    })
+    this.toggle()
   }
 
   render() {
