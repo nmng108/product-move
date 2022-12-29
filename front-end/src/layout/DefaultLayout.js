@@ -1,7 +1,13 @@
 import React from 'react'
 import { AppContent, AppSidebar, AppFooter, AppHeader } from '../components/index'
+import { useCookies } from 'react-cookie'
+import { Navigate } from 'react-router-dom'
 
 const DefaultLayout = () => {
+  // check user validation state with access token
+  const [cookies, SetCookie] = useCookies()
+  if (!cookies.token2) return <Navigate to={'/login'} replace />
+
   return (
     <div>
       <AppSidebar />

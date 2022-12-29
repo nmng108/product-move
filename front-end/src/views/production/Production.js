@@ -22,55 +22,26 @@ import {
   CTableHeaderCell,
   CTableRow,
 } from '@coreui/react'
-import { CChartLine } from '@coreui/react-chartjs'
-import { getStyle, hexToRgba } from '@coreui/utils'
-import CIcon from '@coreui/icons-react'
-
-import {
-  cibCcAmex,
-  cibCcApplePay,
-  cibCcMastercard,
-  cibCcPaypal,
-  cibCcStripe,
-  cibCcVisa,
-  cibGoogle,
-  cibFacebook,
-  cibLinkedin,
-  cifBr,
-  cifEs,
-  cifFr,
-  cifIn,
-  cifPl,
-  cifUs,
-  cibTwitter,
-  cilCloudDownload,
-  cilPeople,
-  cilUser,
-  cilUserFemale,
-} from '@coreui/icons'
 
 import avatar1 from 'src/assets/images/avatars/1.jpg'
-import avatar2 from 'src/assets/images/avatars/2.jpg'
-import avatar3 from 'src/assets/images/avatars/3.jpg'
-import avatar4 from 'src/assets/images/avatars/4.jpg'
-import avatar5 from 'src/assets/images/avatars/5.jpg'
-import avatar6 from 'src/assets/images/avatars/6.jpg'
+// import avatar2 from 'src/assets/images/avatars/2.jpg'
+// import avatar3 from 'src/assets/images/avatars/3.jpg'
+// import avatar4 from 'src/assets/images/avatars/4.jpg'
+// import avatar5 from 'src/assets/images/avatars/5.jpg'
+// import avatar6 from 'src/assets/images/avatars/6.jpg'
 import { Button } from '@coreui/coreui'
+// import ProductionModal from './ProductionModal'
 
-import axios from 'axios'
-
-import ProducerModal from './ProducerModal'
-
-class Producer extends React.Component {
+class Production extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
+      editMode: false,
       showModal: false,
       modalTitle: 'Thêm mới',
       // get data from api
       dataset: [
         {
-          id: 102,
           avatar: { src: avatar1 },
           producer: {
             name: 'Nhà máy A',
@@ -81,7 +52,7 @@ class Producer extends React.Component {
           address: 'Đông Anh, Hà Nội',
           launchDate: '...-2020',
           numberOfWorkers: 581,
-          activity: '10 min ago',
+          activity: '10 sec ago',
         },
       ],
     }
@@ -90,48 +61,14 @@ class Producer extends React.Component {
   }
 
   componentDidMount() {
-    this.getAllProducersInfo()
+    this.getData()
   }
 
   // get data from api and setState
-  getAllProducersInfo() {
-    // axios.get('https://api.sampleapis.com/coffee/hot').then((res) => {
-    //   this.setState({ dataset: res.data })
-    // })
-  }
-
-  getSpecifiedProducer(id) {
-    // axios.get('').then()
-  }
-
-  openModal(id) {
-    if (typeof id === 'undefined') {
-      // Add new producer; open without data
-      if (this.modalRef.current) this.modalRef.current.toggle()
-      else console.log('ref is null')
-    } else {
-      // send get req then setState
-      axios.get('https://api.sampleapis.com/coffee/hot').then((res) => {
-        if (this.modalRef.current) {
-          this.modalRef.current.getProfile(res.data[0])
-          this.modalRef.current.toggle()
-        }
-      })
-    }
-  }
-
-  // This function only deletes the row of profile which has been removed in modal
-  deleteProfile(id) {
-    let rm_idx = 0
-    let dataset = this.state.dataset.slice()
-    for (let i = 0; i < dataset.length; i++) {
-      if (dataset[i].id === id) {
-        dataset.splice(i, 1)
-        break
-      }
-    }
-
-    this.setState({ dataset: dataset })
+  getData() {
+    // fetch('')
+    //   .then((res) => res.json())
+    //   .then(res => this.setState({ dataset: }))
   }
 
   render() {
@@ -144,11 +81,32 @@ class Producer extends React.Component {
               <CButton
                 className="btn-success"
                 onClick={() => {
-                  this.openModal()
+                  // this.setState({ showModal: !this.state.showModal })
+                  this.modalRef.current.toggle()
                 }}
               >
                 Thêm
               </CButton>{' '}
+              <CButton
+                disabled={this.state.editMode}
+                onClick={() => {
+                  this.setState({ editMode: !this.state.editMode })
+                }}
+              >
+                Sửa
+              </CButton>{' '}
+              <CButton
+                className="btn-warning"
+                hidden={!this.state.editMode}
+                onClick={() => {
+                  if (this.state.editMode) {
+                    // send request, then:
+                    this.setState({ editMode: false })
+                  }
+                }}
+              >
+                Xong
+              </CButton>
             </div>
             <div className="left"></div>
           </CCardHeader>
@@ -168,11 +126,7 @@ class Producer extends React.Component {
               </CTableHead>
               <CTableBody>
                 {this.state.dataset.map((item, index) => (
-                  <CTableRow
-                    v-for="item in tableItems"
-                    key={index}
-                    onClick={() => this.openModal(item.id)}
-                  >
+                  <CTableRow v-for="item in tableItems" key={index}>
                     <CTableDataCell className="text-center">{index + 1}</CTableDataCell>
                     <CTableDataCell>
                       <div>{item.producer.name}</div>
@@ -191,25 +145,41 @@ class Producer extends React.Component {
                     <CTableDataCell>
                       <strong>{item.activity}</strong>
                     </CTableDataCell>
-                    <CTableDataCell></CTableDataCell>
+                    <CTableDataCell>
+                      <CButton
+                        className="btn-danger"
+                        hidden={!this.state.editMode}
+                        onClick={() => {
+                          // show confirmation dialog
+                          let isConfirmed = window.confirm('Bạn chắc chắn muốn xóa không?')
+                          if (isConfirmed) {
+                            // send DELETE request, then remove the record
+                            let dataset = this.state.dataset.slice()
+                            dataset.pop(index)
+                            this.setState({ dataset: dataset })
+                          }
+                        }}
+                      >
+                        Xóa
+                      </CButton>
+                    </CTableDataCell>
                   </CTableRow>
                 ))}
               </CTableBody>
             </CTable>
           </CCardBody>
         </CCard>
-        <ProducerModal
-          id="producer-profile"
-          ref={this.modalRef}
-          // data={}
-          title={this.state.modalTitle}
-          deleteProfile={(id) => this.deleteProfile(id)}
-        >
-          {' '}
-        </ProducerModal>
+        {/*<ProducerModal*/}
+        {/*  id="edit-profile"*/}
+        {/*  ref={this.modalRef}*/}
+        {/*  // visible={this.state.showModal}*/}
+        {/*  title={this.state.modalTitle}*/}
+        {/*>*/}
+        {/*  {' '}*/}
+        {/*</ProducerModal>*/}
       </>
     )
   }
 }
 
-export default Producer
+export default Production

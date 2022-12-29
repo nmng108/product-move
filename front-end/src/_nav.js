@@ -23,48 +23,32 @@ const _nav = [
   },
   {
     component: CNavItem,
-    name: 'Statistic', // may change to dashboard shortly
-    to: '/statistic',
-    icon: <CIcon icon={cilAddressBook} customClassName="nav-icon" />,
-    badge: {
-      color: 'info',
-      text: 'WORKING',
-    },
+    name: 'Dashboard',
+    to: '/dashboard',
+    icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
   },
   {
     component: CNavItem,
     name: 'Producer',
     to: '/producer',
     icon: <CIcon icon={cilAddressBook} customClassName="nav-icon" />,
-    badge: {
-      color: 'info',
-      text: 'WORKING',
-    },
   },
   {
     component: CNavItem,
     name: 'Distributor',
     to: '/distributor',
     icon: <CIcon icon={cilAddressBook} customClassName="nav-icon" />,
-    badge: {
-      color: 'info',
-      text: 'WORKING',
-    },
   },
   {
     component: CNavItem,
     name: 'Warranty Center',
     to: '/warranty-center',
     icon: <CIcon icon={cilAddressBook} customClassName="nav-icon" />,
-    badge: {
-      color: 'info',
-      text: 'WORKING',
-    },
   },
   {
     component: CNavItem,
-    name: 'Dashboard',
-    to: '/dashboard',
+    name: 'Statistic',
+    to: '/statistic',
     icon: <CIcon icon={cilSpeedometer} customClassName="nav-icon" />,
     badge: {
       color: 'info',

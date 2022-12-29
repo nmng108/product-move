@@ -2,9 +2,10 @@
  * This component renders a modal for add new producer/manufactory or alter an existing one.
  * TODO: get record's data and render to form inputs
  */
-import { CButton, CModal, CModalBody, CModalFooter, CModalHeader } from '@coreui/react'
+import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CRow } from '@coreui/react'
 import React from 'react'
 import { PropTypes } from 'prop-types'
+import axios from 'axios'
 
 class ProducerModal extends React.Component {
   constructor(props) {
@@ -12,6 +13,8 @@ class ProducerModal extends React.Component {
     this.state = {
       visible: false,
       title: '',
+      data: null,
+      editMode: false,
     }
   }
 
@@ -27,37 +30,92 @@ class ProducerModal extends React.Component {
     this.setState({ visible: !this.state.visible })
   }
 
+  getProfile(data) {
+    if (!data) {
+      console.log('profile not found')
+      return
+    }
+
+    this.setState({ data: data }, () => console.log(data))
+  }
+
   handleConfirmButton() {
-    fetch('').then((res) => {
-      if (res.status === 204) {
-        this.toggle()
-      }
-    })
+    // axios.post('').then((res) => {
+    //   if (res.status === 204) {
+    //     this.toggle()
+    //   }
+    // })
     this.toggle()
   }
 
   render() {
+    const { description, id, image, ingredients, title } = this.state.data || Array(4).fill('')
+
     return (
+      // turn to form or able to edit when open edit mode
       <CModal id={this.props.id} visible={this.state.visible}>
-        <CModalHeader closeButton>{this.state.title}</CModalHeader>
+        <CModalHeader closeButton>
+          <CButton
+            // disabled={this.state.editMode}
+            color="warning"
+            onClick={() => {
+              this.setState({ editMode: !this.state.editMode })
+            }}
+          >
+            Sửa
+          </CButton>{' '}
+          <CButton
+            className="btn-danger"
+            onClick={() => {
+              // show confirmation dialog
+              let isConfirmed = window.confirm('Bạn chắc chắn muốn xóa không?')
+              if (isConfirmed) {
+                // send DELETE request, then remove the record
+                axios.delete('').then((res) => {
+                  if (true || res.status === 204) {
+                    this.toggle()
+                    this.props.deleteProfile(id)
+                  }
+                })
+              }
+            }}
+          >
+            Xóa
+          </CButton>{' '}
+          {this.state.title}
+        </CModalHeader>
         <CModalBody>
           <form action="" id="producer-info">
-            1: <input type="text" />
-            2: <input type="text" />
+            <CRow>
+              <label htmlFor="">Field1</label>
+              <input type="text" defaultValue={title} disabled={!this.state.editMode} />
+            </CRow>
+            <CRow>
+              <label htmlFor="">Field2</label>
+              <input type="text" defaultValue={description} disabled={!this.state.editMode} />
+            </CRow>
+            <CRow>
+              <label htmlFor="">Field4</label>
+              <input type="text" defaultValue={id} disabled={!this.state.editMode} />
+            </CRow>
+            <CRow>
+              <label htmlFor="">Field5</label>
+              <input type="text" defaultValue={image} disabled={!this.state.editMode} />
+            </CRow>
           </form>
         </CModalBody>
         <CModalFooter>
           <CButton
-            color="primary"
+            className="btn-warning"
+            hidden={!this.state.editMode}
             onClick={() => {
-              // send PUT request to modify/add profile and set modal to invisible
-              /**
-               * TODO: add temporary record; add edit button for each record
-               */
-              this.setState({ visible: false })
+              if (this.state.editMode) {
+                // send request, then:
+                this.setState({ editMode: false })
+              }
             }}
           >
-            Xác nhận
+            Xong
           </CButton>{' '}
           <CButton color="secondary" onClick={() => this.toggle()}>
             Hủy
