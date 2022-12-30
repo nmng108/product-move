@@ -6,16 +6,24 @@ import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CRow } from '@
 import React from 'react'
 import { PropTypes } from 'prop-types'
 import axios from 'axios'
+import _ from 'lodash'
+import { replicateObject } from 'src/Utilities'
+import './style.scss'
 
 class ProducerModal extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
+      // 0: ADD; 1: EDIT
+      type: this.props.modalTypes.ADD,
       visible: false,
       title: '',
-      data: null,
       editMode: false,
+      index: -1,
+      data: null, // TODO: may extract field into separate vars
+      originalData: null,
     }
+    this.types = this.props.modalTypes
   }
 
   // executed after rendering
@@ -26,98 +34,298 @@ class ProducerModal extends React.Component {
     // })
   }
 
-  toggle() {
-    this.setState({ visible: !this.state.visible })
+  /**
+   * This function is used to open/close modal,
+   * called from parent component or by its buttons.
+   * @param {null | boolean} modalIsOpen
+   * @param {0 | 1} type 0 is ADD type, 1 means EDIT type
+   * @param {{data: object, index: number}} record (optional) with form {data, index (in table)}, set by parent component
+   */
+  toggle(modalIsOpen = null, type, record) {
+    let visible = !this.state.visible
+    if (typeof modalIsOpen === 'boolean') {
+      visible = modalIsOpen
+    }
+    // Open edit mode by default if the purpose is adding new record
+    if (type === this.types.ADD) this.setEditMode(true)
+
+    this.setModalType(type, () => {
+      if (typeof record === 'object') {
+        this.getProfile(record, () => this.setState({ visible: visible }))
+      } else this.setState({ visible: visible })
+    })
   }
 
-  getProfile(data) {
-    if (!data) {
+  setEditMode(isOpen = false) {
+    this.setState({ editMode: isOpen })
+  }
+
+  setModalType(type, callback) {
+    let newTitle = ''
+    if (type === this.types.ADD) {
+      newTitle = 'Thêm mới'
+    } else if (type === this.types.EDIT) {
+      newTitle = 'Sửa thông tin'
+    }
+
+    this.setState({ type: type, title: newTitle }, callback)
+  }
+
+  isAddMode() {
+    return this.state.type === this.types.ADD
+  }
+
+  /**
+   * Set profile taken from parent to state variables
+   * @param {{data: object, index: number}} record (optional) with form {data, index (in table)}
+   * @param {function} callback
+   */
+  getProfile(record, callback) {
+    if (!record) {
       console.log('profile not found')
       return
     }
 
-    this.setState({ data: data }, () => console.log(data))
+    this.setState({ data: record.data, index: record.index, originalData: record.data }, callback)
   }
 
-  handleConfirmButton() {
-    // axios.post('').then((res) => {
-    //   if (res.status === 204) {
-    //     this.toggle()
-    //   }
-    // })
-    this.toggle()
+  resetModal() {
+    // clear modal and lock
+    this.setState({ data: null, index: -1, editMode: false })
+  }
+
+  /**
+   * Update data state on input changes
+   * @param {string} attribute fields in the data state variable
+   * @param {string | number} value
+   */
+  handleInputOnChange(attribute, value) {
+    let profile = replicateObject(this.state.data)
+    if (typeof attribute !== 'string') {
+      console.log(toString(attribute), ' is not of string type')
+      return
+    }
+    if (!profile[attribute]) {
+      console.log(`No ${attribute} found`)
+      return
+    }
+
+    profile[attribute] = value
+    this.setState({ data: profile }, () => {
+      // console.log('data state var after change:\n', this.state.data),
+    })
+  }
+
+  handleConfirmButton(index) {
+    let isConfirmed = window.confirm('Bạn chắc chắn muốn lưu không?')
+    if (isConfirmed) {
+      this.setEditMode(false)
+
+      // TODO: send POST request
+      // axios.post('').then((res) => {
+      //   if (res.status === 204) {
+      // then modify the record in table
+      this.toggle(false)
+      this.resetModal()
+      this.props.setProfile(this.state.data, index)
+      //   } else {
+      //    this.setEditMode(true)
+      // }
+      // })
+    }
+  }
+
+  handleDeleteButton(index) {
+    // show confirmation dialog
+    let isConfirmed = window.confirm('Bạn chắc chắn muốn xóa không?')
+    if (isConfirmed) {
+      // send DELETE request, then remove the record
+      // axios.delete('').then((res) => {
+      // if (true || res.status === 204) {
+      this.toggle(false)
+      this.resetModal()
+      this.props.deleteProfile(index)
+      // }
+      // keep modal open if failed
+      // })
+    }
+  }
+
+  handleCancelButton(id) {
+    if (this.isAddMode()) this.toggle(false)
+    else this.setEditMode(false)
+  }
+
+  handleCloseButton() {
+    this.toggle(false)
+    this.resetModal()
   }
 
   render() {
-    const { description, id, image, ingredients, title } = this.state.data || Array(4).fill('')
-
+    // TODO: data may be not cleared in the form
+    let profile = this.state.data || Array(6).fill('')
+    console.log(profile)
     return (
       // turn to form or able to edit when open edit mode
-      <CModal id={this.props.id} visible={this.state.visible}>
+      <CModal
+        id={this.props.id}
+        visible={this.state.visible}
+        onClose={() => this.handleCloseButton()}
+      >
         <CModalHeader closeButton>
-          <CButton
-            // disabled={this.state.editMode}
-            color="warning"
-            onClick={() => {
-              this.setState({ editMode: !this.state.editMode })
-            }}
-          >
-            Sửa
-          </CButton>{' '}
-          <CButton
-            className="btn-danger"
-            onClick={() => {
-              // show confirmation dialog
-              let isConfirmed = window.confirm('Bạn chắc chắn muốn xóa không?')
-              if (isConfirmed) {
-                // send DELETE request, then remove the record
-                axios.delete('').then((res) => {
-                  if (true || res.status === 204) {
-                    this.toggle()
-                    this.props.deleteProfile(id)
-                  }
+          <h2>{this.state.title}</h2>
+          <div className="button-group" hidden={this.isAddMode()}>
+            <CButton
+              className="edit-btn"
+              color="warning"
+              disabled={this.state.editMode}
+              onClick={() => {
+                this.setState({
+                  editMode: !this.state.editMode,
                 })
-              }
-            }}
-          >
-            Xóa
-          </CButton>{' '}
-          {this.state.title}
+              }}
+            >
+              Sửa
+            </CButton>{' '}
+            <CButton
+              className="btn-danger delete-btn"
+              onClick={() => this.handleDeleteButton(this.state.index)}
+            >
+              Xóa
+            </CButton>{' '}
+          </div>
         </CModalHeader>
         <CModalBody>
           <form action="" id="producer-info">
             <CRow>
-              <label htmlFor="">Field1</label>
-              <input type="text" defaultValue={title} disabled={!this.state.editMode} />
+              <label className="form-label" htmlFor="input-name">
+                Tên nhà sản xuất (theo đăng ký)
+              </label>
+              <input
+                className="form-input"
+                type="text"
+                defaultValue={profile.title}
+                disabled={!this.state.editMode}
+                // TODO: change this attr
+                onChange={(e) => this.handleInputOnChange('title', e.target.value)}
+              />
             </CRow>
             <CRow>
-              <label htmlFor="">Field2</label>
-              <input type="text" defaultValue={description} disabled={!this.state.editMode} />
+              <label className="form-label" htmlFor="input-registedDate">
+                Ngày đăng ký
+              </label>
+              <input
+                className="form-input"
+                type="date"
+                defaultValue={profile.title}
+                disabled={!this.state.editMode}
+                onChange={(e) => this.handleInputOnChange('registedDate', e.target.value)}
+              />
             </CRow>
             <CRow>
-              <label htmlFor="">Field4</label>
-              <input type="text" defaultValue={id} disabled={!this.state.editMode} />
+              <label className="form-label" htmlFor="input-lauchDate">
+                Ngày đi vào hoạt động
+              </label>
+              <input
+                className="form-input"
+                type="date"
+                defaultValue={profile.title}
+                disabled={!this.state.editMode}
+                onChange={(e) => this.handleInputOnChange('lauchDate', e.target.value)}
+              />
             </CRow>
             <CRow>
-              <label htmlFor="">Field5</label>
-              <input type="text" defaultValue={image} disabled={!this.state.editMode} />
+              <label className="form-label" htmlFor="input-representative">
+                Người đại diện
+              </label>
+              <input
+                className="form-input"
+                type="text"
+                defaultValue={profile.description}
+                disabled={!this.state.editMode}
+                onChange={(e) => this.handleInputOnChange('representative', e.target.value)}
+              />
+            </CRow>
+            <CRow>
+              <label className="form-label" htmlFor="input-representativeID">
+                Số căn cước
+              </label>
+              <input
+                className="form-input"
+                type="number"
+                defaultValue={profile.description}
+                disabled={!this.state.editMode}
+                onChange={(e) => this.handleInputOnChange('representativeID', e.target.value)}
+              />
+            </CRow>
+            <CRow>
+              <label className="form-label" htmlFor="input-contact">
+                Thông tin liên hệ
+              </label>
+              <input
+                className="form-input"
+                type="text"
+                defaultValue={profile.description}
+                disabled={!this.state.editMode}
+                onChange={(e) => this.handleInputOnChange('contact', e.target.value)}
+              />
+            </CRow>
+            <CRow>
+              <label className="form-label" htmlFor="input-address">
+                Địa chỉ đặt nhà máy
+              </label>
+              <input
+                className="form-input"
+                type="text"
+                defaultValue={profile.id}
+                disabled={!this.state.editMode}
+                onChange={(e) => this.handleInputOnChange('address', e.target.value)}
+              />
+            </CRow>
+            <CRow>
+              <label className="form-label" htmlFor="input-username">
+                Username
+              </label>
+              <input
+                className="form-input"
+                type="text"
+                defaultValue={profile.id}
+                disabled={!this.state.editMode}
+                onChange={(e) => this.handleInputOnChange('username', e.target.value)}
+              />
+            </CRow>
+            <CRow>
+              <label className="form-label" htmlFor="input-password">
+                Password
+              </label>
+              <input
+                className="form-input"
+                type="password"
+                defaultValue={profile.id}
+                disabled={!this.state.editMode}
+                onChange={(e) => this.handleInputOnChange('password', e.target.value)}
+              />
             </CRow>
           </form>
         </CModalBody>
         <CModalFooter>
           <CButton
             className="btn-warning"
-            hidden={!this.state.editMode}
+            hidden={!this.state.editMode && !this.isAddMode()}
+            disabled={_.isEqual(this.state.data, this.state.originalData)}
             onClick={() => {
               if (this.state.editMode) {
-                // send request, then:
-                this.setState({ editMode: false })
+                this.handleConfirmButton(this.state.index)
               }
             }}
           >
             Xong
           </CButton>{' '}
-          <CButton color="secondary" onClick={() => this.toggle()}>
+          <CButton
+            hidden={!this.state.editMode}
+            color="secondary"
+            onClick={() => this.handleCancelButton()}
+          >
             Hủy
           </CButton>
         </CModalFooter>

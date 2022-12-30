@@ -10,7 +10,7 @@ import CIcon from '@coreui/icons-react'
 import { cilCloudDownload } from '@coreui/icons'
 import ProducedStatistic from './ProducedStatistic'
 
-import { MONTH, YEAR, CURRENT_MONTH, CURRENT_YEAR, monthsOfYear, random } from './Utilities.js'
+import { MONTH, YEAR, CURRENT_MONTH, CURRENT_YEAR, monthsOfYear, random } from '../../Utilities.js'
 
 var wait = () => {
   return new Promise((res) => {

@@ -1,6 +1,5 @@
 /**
  * This component renders table for managing producers/manufactories.
- * TODO: add state(or sth) to save existing record's data and pass to modal
  */
 import React from 'react'
 
@@ -55,11 +54,14 @@ import avatar3 from 'src/assets/images/avatars/3.jpg'
 import avatar4 from 'src/assets/images/avatars/4.jpg'
 import avatar5 from 'src/assets/images/avatars/5.jpg'
 import avatar6 from 'src/assets/images/avatars/6.jpg'
-import { Button } from '@coreui/coreui'
 
 import axios from 'axios'
 
 import ProducerModal from './ProducerModal'
+import './style.scss'
+
+// Modal types
+const [ADD, EDIT] = [0, 1]
 
 class Producer extends React.Component {
   constructor(props) {
@@ -74,14 +76,30 @@ class Producer extends React.Component {
           avatar: { src: avatar1 },
           producer: {
             name: 'Nhà máy A',
-            new: false,
             registered: 'Jan 8, 2020',
           },
           representative: 'Lê Thị A',
+          contact: '0397591234',
           address: 'Đông Anh, Hà Nội',
           launchDate: '...-2020',
           numberOfWorkers: 581,
-          activity: '10 min ago',
+          username: 'producera',
+          password: '1233',
+        },
+        {
+          id: 189,
+          avatar: { src: avatar2 },
+          producer: {
+            name: 'Nhà máy B',
+            registered: 'Jan 8, 2021',
+          },
+          representative: 'Trần Văn B',
+          contact: '0547290048',
+          address: 'Đông Anh, Hà Nội',
+          launchDate: '...-2021',
+          numberOfWorkers: 800,
+          username: 'producerb',
+          password: '1233',
         },
       ],
     }
@@ -104,37 +122,55 @@ class Producer extends React.Component {
     // axios.get('').then()
   }
 
-  openModal(id) {
+  /**
+   * Open modal with 2 types/modes:
+   * if id is undefined, modal is used for registering
+   * else, modal is used for modifing
+   * @param {string | number} id
+   * @param {number} index
+   */
+  openModal(id, index = -1) {
     if (typeof id === 'undefined') {
       // Add new producer; open without data
-      if (this.modalRef.current) this.modalRef.current.toggle()
-      else console.log('ref is null')
+      if (this.modalRef.current) {
+        // this.modalRef.current.toggle()
+        this.modalRef.current.toggle(true, ADD)
+      } else console.log('ref is null')
     } else {
       // send get req then setState
       axios.get('https://api.sampleapis.com/coffee/hot').then((res) => {
         if (this.modalRef.current) {
-          this.modalRef.current.getProfile(res.data[0])
-          this.modalRef.current.toggle()
+          this.modalRef.current.toggle(true, EDIT, { data: res.data[1], index: index })
         }
       })
     }
   }
 
-  // This function only deletes the row of profile which has been removed in modal
-  deleteProfile(id) {
-    let rm_idx = 0
-    let dataset = this.state.dataset.slice()
-    for (let i = 0; i < dataset.length; i++) {
-      if (dataset[i].id === id) {
-        dataset.splice(i, 1)
-        break
-      }
-    }
+  /**
+   * Modify an existing profile or add new profile to the list.
+   * @param {id: string | number, avatar: { src: avatar1 }, producer: { name: string, registered: string,}, representative: string, contact: string, address: string, launchDate: string, numberOfWorkers: number, activity: string} modifiedRecord
+   * @param {number | string} index Position of record in table|array. Value of -1 means that record is new and will be added.
+   */
+  setProfile(modifiedRecord, index) {
+    let dataset = [...this.state.dataset]
+    if (index === -1) dataset = [modifiedRecord, ...dataset]
+    else dataset[index] = modifiedRecord
+    this.setState({ dataset: dataset })
+  }
 
+  /**
+   * This function only deletes the presense of row of profile
+   * which has been commited to be removed in modal.
+   * @param {number} index Index of the row in table
+   */
+  deleteProfile(index) {
+    let dataset = [...this.state.dataset]
+    dataset.splice(index, 1)
     this.setState({ dataset: dataset })
   }
 
   render() {
+    // axios.get('http://127.0.0.1:8000').then((res) => console.log(res.data))
     return (
       <>
         <CCard>
@@ -158,40 +194,36 @@ class Producer extends React.Component {
                 <CTableRow>
                   <CTableHeaderCell className="text-center">STT</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Manufactory</CTableHeaderCell>
-                  <CTableHeaderCell className="text-center">Người đại diện</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Ngày hoạt động</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Số lượng nhân công</CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">Người đại diện</CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">Thông tin liên hệ</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Địa chỉ</CTableHeaderCell>
-                  <CTableHeaderCell>Activity</CTableHeaderCell>
-                  <CTableHeaderCell></CTableHeaderCell>
                 </CTableRow>
               </CTableHead>
               <CTableBody>
                 {this.state.dataset.map((item, index) => (
                   <CTableRow
                     v-for="item in tableItems"
+                    className="table-item"
                     key={index}
-                    onClick={() => this.openModal(item.id)}
+                    onClick={() => this.openModal(item.id, index)}
                   >
                     <CTableDataCell className="text-center">{index + 1}</CTableDataCell>
                     <CTableDataCell>
                       <div>{item.producer.name}</div>
                       <div className="small text-medium-emphasis">
-                        <span>{item.producer.new ? 'New' : 'Recurring'}</span> | Registered:{' '}
-                        {item.producer.registered}
+                        Registered: {item.producer.registered}
                       </div>
-                    </CTableDataCell>
-                    <CTableDataCell className="text-center">
-                      <CAvatar size="md" src={item.avatar.src} status={item.avatar.status} />
-                      <span>{' ' + item.representative}</span>
                     </CTableDataCell>
                     <CTableDataCell className="text-center">{item.launchDate}</CTableDataCell>
                     <CTableDataCell className="text-center">{item.numberOfWorkers}</CTableDataCell>
-                    <CTableDataCell className="text-center">{item.address}</CTableDataCell>
-                    <CTableDataCell>
-                      <strong>{item.activity}</strong>
+                    <CTableDataCell className="text-center">
+                      <CAvatar size="md" src={item.avatar.src} />
+                      <span>{' ' + item.representative}</span>
                     </CTableDataCell>
-                    <CTableDataCell></CTableDataCell>
+                    <CTableDataCell className="text-center">{item.contact}</CTableDataCell>
+                    <CTableDataCell className="text-center">{item.address}</CTableDataCell>
                   </CTableRow>
                 ))}
               </CTableBody>
@@ -201,9 +233,10 @@ class Producer extends React.Component {
         <ProducerModal
           id="producer-profile"
           ref={this.modalRef}
-          // data={}
+          modalTypes={{ ADD: ADD, EDIT: EDIT }}
           title={this.state.modalTitle}
-          deleteProfile={(id) => this.deleteProfile(id)}
+          setProfile={(idx) => this.setProfile(idx)}
+          deleteProfile={(idx) => this.deleteProfile(idx)}
         >
           {' '}
         </ProducerModal>
