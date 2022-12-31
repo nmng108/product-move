@@ -1,5 +1,5 @@
 /**
- * This component renders table for managing producers/manufactories.
+ * This component renders table for managing productions.
  */
 import React from 'react'
 
@@ -16,13 +16,11 @@ import {
   CTableRow,
 } from '@coreui/react'
 
-import axios from 'axios'
-
-import ProducerModal from './ProducerModal'
+import ProductionModal from './ProductionModal'
 import { ADD, EDIT, sendRequest } from '../../Utilities'
 import './style.scss'
 
-class Producer extends React.Component {
+class Production extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -33,16 +31,16 @@ class Producer extends React.Component {
       dataset: [
         {
           _id: 102,
-          name: 'Nhà máy A',
-          date_register: 'Jan 8, 2020',
-          date_active: '...-2020',
-          address: 'Đông Anh, Hà Nội',
-          numberOfWorkers: 581,
-          namePerson: 'Lê Thị A', // representative
-          contact: '0397591234',
-          representativeID: '02394081423',
-          username: 'producera',
-          password: '123',
+          name: 'Xe máy điện Klara',
+          length: '150cm',
+          width: '50cm',
+          height: '90cm',
+          weight: '30kg',
+          speed: '50km/h', // representative
+          image: '',
+          color: 'đỏ',
+          price: '20.000.000VND',
+          brand: 'dòng sản phẩm 1',
         },
       ],
     }
@@ -51,18 +49,18 @@ class Producer extends React.Component {
   }
 
   componentDidMount() {
-    this.getAllProducersInfo()
+    this.getAllProfiles()
   }
 
   // get data from api and setState
-  getAllProducersInfo() {
-    sendRequest('/admin/api/cssx/getAll', 'get').then((res) => {
+  getAllProfiles() {
+    sendRequest('/admin/api/product/getAll', 'get').then((res) => {
       console.log(res.data)
       this.setState({ dataset: res.data })
     })
   }
 
-  getSpecifiedProducer(id) {
+  getSpecifiedProfile(id) {
     // axios.get('').then()
   }
 
@@ -82,7 +80,7 @@ class Producer extends React.Component {
       } else console.log('ref is null')
     } else {
       // send get req then setState/admin/api/cssx/ + id
-      sendRequest(`/admin/api/cssx/${id}`, 'get').then((res) => {
+      sendRequest(`/admin/api/product/${id}`, 'get').then((res) => {
         if (this.modalRef.current) {
           this.modalRef.current.toggle(true, EDIT, { data: res.data[1], index: index })
         }
@@ -137,13 +135,19 @@ class Producer extends React.Component {
               <CTableHead color="light">
                 <CTableRow>
                   <CTableHeaderCell className="text-center">STT</CTableHeaderCell>
-                  <CTableHeaderCell className="text-center">Nhà máy</CTableHeaderCell>
-                  <CTableHeaderCell className="text-center">Ngày hoạt động</CTableHeaderCell>
-                  <CTableHeaderCell className="text-center">Số lượng nhân công</CTableHeaderCell>
-                  <CTableHeaderCell className="text-center">Địa chỉ</CTableHeaderCell>
-                  <CTableHeaderCell className="text-center">Người đại diện</CTableHeaderCell>
-                  <CTableHeaderCell className="text-center">Số căn cước</CTableHeaderCell>
-                  <CTableHeaderCell className="text-center">Thông tin liên hệ</CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">Tên mẫu xe</CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">Chiều dài (cm)</CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">Chiều rộng (cm)</CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">Chiều cao (cm)</CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">Cân nặng (kg)</CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">Tốc độ tối đa</CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">Màu</CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">
+                    Thuộc hãng/dòng sản phẩm
+                  </CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">
+                    Giá bán niêm yết (VND)
+                  </CTableHeaderCell>
                 </CTableRow>
               </CTableHead>
               <CTableBody>
@@ -160,20 +164,15 @@ class Producer extends React.Component {
                       <CTableDataCell className="text-center">{index + 1}</CTableDataCell>
                       <CTableDataCell>
                         <div>{item.name}</div>
-                        <div className="small text-medium-emphasis">
-                          Registered: {item.date_register}
-                        </div>
                       </CTableDataCell>
-                      <CTableDataCell className="text-center">{item.date_active}</CTableDataCell>
-                      <CTableDataCell className="text-center">
-                        {item.numberOfWorkers}
-                      </CTableDataCell>
-                      <CTableDataCell className="text-center">{item.address}</CTableDataCell>
-                      <CTableDataCell className="text-center">{item.namePerson}</CTableDataCell>
-                      <CTableDataCell className="text-center">
-                        {item.representativeID}
-                      </CTableDataCell>
-                      <CTableDataCell className="text-center">{item.contact}</CTableDataCell>
+                      <CTableDataCell className="text-center">{item.length}</CTableDataCell>
+                      <CTableDataCell className="text-center">{item.width}</CTableDataCell>
+                      <CTableDataCell className="text-center">{item.height}</CTableDataCell>
+                      <CTableDataCell className="text-center">{item.weight}</CTableDataCell>
+                      <CTableDataCell className="text-center">{item.speed}</CTableDataCell>
+                      <CTableDataCell className="text-center">{item.color}</CTableDataCell>
+                      <CTableDataCell className="text-center">{item.brand}</CTableDataCell>
+                      <CTableDataCell className="text-center">{item.price}</CTableDataCell>
                     </CTableRow>
                   ),
                 )}
@@ -181,18 +180,18 @@ class Producer extends React.Component {
             </CTable>
           </CCardBody>
         </CCard>
-        <ProducerModal
-          id="producer-profile"
+        <ProductionModal
+          id="production-profile"
           ref={this.modalRef}
           title={this.state.modalTitle}
           setProfile={(idx) => this.setProfile(idx)}
           deleteProfile={(idx) => this.deleteProfile(idx)}
         >
           {' '}
-        </ProducerModal>
+        </ProductionModal>
       </>
     )
   }
 }
 
-export default Producer
+export default Production

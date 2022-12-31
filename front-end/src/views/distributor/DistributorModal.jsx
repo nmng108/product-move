@@ -1,5 +1,5 @@
 /**
- * This component renders a modal for add new producer/manufactory or alter an existing one.
+ * This component renders a modal for add new distributor or alter an existing one.
  */
 import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CRow } from '@coreui/react'
 import React from 'react'
@@ -8,7 +8,7 @@ import _ from 'lodash'
 import { replicateObject, sendRequest, ADD, EDIT } from 'src/Utilities'
 import './style.scss'
 
-class ProducerModal extends React.Component {
+class DistributorModal extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -20,6 +20,7 @@ class ProducerModal extends React.Component {
       index: -1,
       data: null,
       originalData: null,
+      notifClass: 'text-danger',
     }
   }
 
@@ -109,16 +110,28 @@ class ProducerModal extends React.Component {
     if (isConfirmed) {
       this.setEditMode(false)
 
-      sendRequest('/admin/api/cssx/create', 'post', this.state.data).then((res) => {
-        if (res.status === 201) {
-          // then modify the record in table
-          this.toggle(false)
-          this.resetModal()
-          this.props.setProfile(this.state.data, index)
-        } else {
+      sendRequest('/admin/api/ttbh/create', 'post', this.state.data)
+        .then((res) => {
+          if (res.status === 201) {
+            // then modify the record in table
+            this.props.setProfile(this.state.data, index)
+
+            this.setState({ notification: 'Tạo mới thành công', notifClass: 'text-success' })
+            setTimeout(() => {
+              this.setState({ notification: '' })
+              this.toggle(false)
+              this.resetModal()
+            }, 2000)
+          } else {
+            this.setEditMode(true)
+          }
+        })
+        .catch((reject) => {
+          console.log(reject)
           this.setEditMode(true)
-        }
-      })
+          this.setState({ notification: 'Tạo mới không thành công', notifClass: 'text-danger' })
+          setTimeout(() => this.setState({ notification: '' }), 2000)
+        })
     }
   }
 
@@ -127,14 +140,18 @@ class ProducerModal extends React.Component {
     let isConfirmed = window.confirm('Bạn chắc chắn muốn xóa không?')
     if (isConfirmed) {
       // send DELETE request, then remove the record
-      sendRequest(`/admin/api/cssx/delete/${this.state.data._id}`).then((res) => {
-        if (res.status === 200) {
-          // this.toggle(false)
-          // this.resetModal()
-          // this.props.deleteProfile(index)
-        }
-        // keep modal open if failed
-      })
+      sendRequest(`/admin/api/ttbnh/delete/${this.state.data._id}`)
+        .then((res) => {
+          if (res.status === 200) {
+            this.toggle(false)
+            this.resetModal()
+            this.props.deleteProfile(index)
+          }
+          // keep modal open if failed
+        })
+        .catch((reject) => {
+          console.log(reject)
+        })
     }
   }
 
@@ -148,7 +165,14 @@ class ProducerModal extends React.Component {
     this.resetModal()
   }
 
+  disableConfirmButton() {
+    let unchanged = this.state.type === EDIT && _.isEqual(this.state.data, this.state.originalData)
+    let isBlank = this.state.type === ADD && _.isEqual(this.state.data, this.state.originalData)
+    return unchanged || isBlank
+  }
+
   render() {
+    // data may be not cleared in the form
     let profile = this.state.data || {}
     console.log(profile)
     return (
@@ -297,9 +321,7 @@ class ProducerModal extends React.Component {
           <CButton
             className="btn-warning"
             hidden={!this.state.editMode && !this.isAddMode()}
-            disabled={
-              this.state.type === EDIT && _.isEqual(this.state.data, this.state.originalData)
-            }
+            disabled={this.disableConfirmButton()}
             onClick={() => {
               if (this.state.editMode) {
                 this.handleConfirmButton(this.state.index)
@@ -321,9 +343,9 @@ class ProducerModal extends React.Component {
   }
 }
 
-ProducerModal.propsTypes = {
+DistributorModal.propsTypes = {
   show: PropTypes.bool,
   title: PropTypes.string,
 }
 
-export default ProducerModal
+export default DistributorModal

@@ -151,7 +151,7 @@ class Statistic extends React.Component {
     return (
       <>
         <ProducedStatistic></ProducedStatistic>
-        <CCard className="mb-4">
+        {/* <CCard className="mb-4">
           <CCardHeader>Bar Chart</CCardHeader>
           <CCardBody>
             <CChartBar
@@ -169,7 +169,7 @@ class Statistic extends React.Component {
               labels="months"
             />
           </CCardBody>
-        </CCard>
+        </CCard> */}
       </>
     )
   }

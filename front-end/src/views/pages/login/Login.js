@@ -17,6 +17,7 @@ import { cilLockLocked, cilUser } from '@coreui/icons'
 import { Cookies } from 'react-cookie'
 import { Navigate } from 'react-router-dom'
 import axios from 'axios'
+import { sendRequest } from 'src/Utilities'
 
 const cookies = new Cookies()
 const d = new Date()
@@ -36,28 +37,66 @@ class Login extends React.Component {
     this.state = {
       username: '',
       password: '',
+      notification: '',
+    }
+  }
+
+  handleInputOnChange(stateVariable, value) {
+    if (typeof stateVariable !== 'string') {
+      console.log('invalid')
+      return
+    }
+
+    switch (stateVariable) {
+      case 'username':
+        this.setState({ username: value, notification: '' })
+        break
+      case 'password':
+        this.setState({ password: value, notification: '' })
+        break
+      default:
+        console.log('state invalid')
+        break
     }
   }
 
   // handle button click/submit event
   handleSubmit(e) {
     // validate
-    if (isEmpty(this.state.username) || isEmpty(this.state.password)) {
-      console.log('invalid')
+    if (isEmpty(this.state.username)) {
+      // show notif
+      this.setState({ notification: 'Bạn chưa nhập tài khoản' })
+      return
+    }
+
+    if (isEmpty(this.state.password)) {
+      // show notif
+      this.setState({ notification: 'Bạn chưa nhập mật khẩu' })
       return
     }
 
     // Send username/pwd to server, then cookies is set by the response
-    // axios.post('')
-    d.setTime(expireTime)
-    cookies.set('token2', 'ned53mlfo32498njls', { path: '/', expires: d })
-
-    window.location.replace('/')
+    sendRequest('/auth/login', 'post', {
+      username: this.state.username,
+      password: this.state.password,
+    })
+      .then((res) => {
+        d.setTime(expireTime)
+        cookies.set('accessToken', res.data.accessToken, { path: '/', expires: d })
+        // need rerender
+        console.log(res)
+        window.location.replace('/')
+      })
+      .catch((rej) => {
+        console.log(rej)
+        this.setState({ notification: 'Tài khoản hoặc mật khẩu không chính xác' })
+        e.preventDefault()
+      })
   }
 
   render() {
     // Navigate to home page if user is authenticated
-    if (cookies.get('token2')) {
+    if (cookies.get('accessToken')) {
       // window.location.replace('/')
       return <Navigate to={'/'} replace />
     }
@@ -80,7 +119,7 @@ class Login extends React.Component {
                         <CFormInput
                           placeholder="Username"
                           autoComplete="username"
-                          onChange={(e) => this.setState({ username: e.target.value })}
+                          onChange={(e) => this.handleInputOnChange('username', e.target.value)}
                         />
                       </CInputGroup>
                       <CInputGroup className="mb-4">
@@ -91,7 +130,7 @@ class Login extends React.Component {
                           type="password"
                           placeholder="Password"
                           autoComplete="current-password"
-                          onChange={(e) => this.setState({ password: e.target.value })}
+                          onChange={(e) => this.handleInputOnChange('password', e.target.value)}
                         />
                       </CInputGroup>
                       <CRow>
@@ -99,16 +138,12 @@ class Login extends React.Component {
                           <CButton
                             color="primary"
                             className="px-4"
-                            onClick={() => this.handleSubmit()}
+                            onClick={(e) => this.handleSubmit(e)}
                           >
                             Login
                           </CButton>
                         </CCol>
-                        <CCol xs={6} className="text-right">
-                          <CButton color="link" className="px-0">
-                            Forgot password?
-                          </CButton>
-                        </CCol>
+                        <CCol xs={6}>{this.state.notification}</CCol>
                       </CRow>
                     </CForm>
                   </CCardBody>

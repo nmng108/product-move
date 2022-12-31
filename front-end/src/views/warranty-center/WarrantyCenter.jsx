@@ -1,5 +1,5 @@
 /**
- * This component renders table for managing producers/manufactories.
+ * This component renders table for managing warranty center.
  */
 import React from 'react'
 
@@ -16,13 +16,11 @@ import {
   CTableRow,
 } from '@coreui/react'
 
-import axios from 'axios'
-
-import ProducerModal from './ProducerModal'
+import WarrantyCenterModal from './WarrantyCenterModal'
 import { ADD, EDIT, sendRequest } from '../../Utilities'
 import './style.scss'
 
-class Producer extends React.Component {
+class WarrantyCenter extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -33,15 +31,15 @@ class Producer extends React.Component {
       dataset: [
         {
           _id: 102,
-          name: 'Nhà máy A',
+          name: 'TTBH 1',
           date_register: 'Jan 8, 2020',
-          date_active: '...-2020',
+          date_active: '10-12-2020',
           address: 'Đông Anh, Hà Nội',
           numberOfWorkers: 581,
           namePerson: 'Lê Thị A', // representative
           contact: '0397591234',
           representativeID: '02394081423',
-          username: 'producera',
+          username: 'ttbh1',
           password: '123',
         },
       ],
@@ -51,18 +49,18 @@ class Producer extends React.Component {
   }
 
   componentDidMount() {
-    this.getAllProducersInfo()
+    this.getAllInfo()
   }
 
   // get data from api and setState
-  getAllProducersInfo() {
-    sendRequest('/admin/api/cssx/getAll', 'get').then((res) => {
+  getAllInfo() {
+    sendRequest('/admin/api/ttbnh/getAll', 'get').then((res) => {
       console.log(res.data)
       this.setState({ dataset: res.data })
     })
   }
 
-  getSpecifiedProducer(id) {
+  getSpecifiedProfile(id) {
     // axios.get('').then()
   }
 
@@ -82,7 +80,7 @@ class Producer extends React.Component {
       } else console.log('ref is null')
     } else {
       // send get req then setState/admin/api/cssx/ + id
-      sendRequest(`/admin/api/cssx/${id}`, 'get').then((res) => {
+      sendRequest(`/admin/api/ttbnh/${id}`, 'get').then((res) => {
         if (this.modalRef.current) {
           this.modalRef.current.toggle(true, EDIT, { data: res.data[1], index: index })
         }
@@ -119,7 +117,7 @@ class Producer extends React.Component {
       <>
         <CCard>
           <CCardHeader>
-            <h4 className="float-start">Danh sách nhà máy</h4>
+            <h4 className="float-start">Danh sách trung tâm bảo hành</h4>
             <div className="float-end">
               <CButton
                 className="btn-success"
@@ -137,7 +135,7 @@ class Producer extends React.Component {
               <CTableHead color="light">
                 <CTableRow>
                   <CTableHeaderCell className="text-center">STT</CTableHeaderCell>
-                  <CTableHeaderCell className="text-center">Nhà máy</CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">Tên</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Ngày hoạt động</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Số lượng nhân công</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Địa chỉ</CTableHeaderCell>
@@ -181,7 +179,7 @@ class Producer extends React.Component {
             </CTable>
           </CCardBody>
         </CCard>
-        <ProducerModal
+        <WarrantyCenterModal
           id="producer-profile"
           ref={this.modalRef}
           title={this.state.modalTitle}
@@ -189,10 +187,10 @@ class Producer extends React.Component {
           deleteProfile={(idx) => this.deleteProfile(idx)}
         >
           {' '}
-        </ProducerModal>
+        </WarrantyCenterModal>
       </>
     )
   }
 }
 
-export default Producer
+export default WarrantyCenter

@@ -2,11 +2,21 @@ import React from 'react'
 import { AppContent, AppSidebar, AppFooter, AppHeader } from '../components/index'
 import { useCookies } from 'react-cookie'
 import { Navigate } from 'react-router-dom'
+import axios from 'axios'
+import { sendRequest, cookies } from 'src/Utilities'
+
+const refreshToken = (token) => {
+  sendRequest('/auth/refreshToken', 'post', token).then((res) => {
+    if (res.status === 201) console.log('refreshed', res.data)
+  })
+}
 
 const DefaultLayout = () => {
   // check user validation state with access token
-  const [cookies, SetCookie] = useCookies()
-  if (!cookies.token2) return <Navigate to={'/login'} replace />
+  if (!cookies.get('accessToken')) return <Navigate to={'/login'} replace />
+  else {
+    refreshToken(cookies.get('accessToken'))
+  }
 
   return (
     <div>
@@ -16,7 +26,6 @@ const DefaultLayout = () => {
         <div className="body flex-grow-1 px-3">
           <AppContent />
         </div>
-        <AppFooter />
       </div>
     </div>
   )

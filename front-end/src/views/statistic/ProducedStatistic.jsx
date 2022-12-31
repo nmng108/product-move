@@ -4,7 +4,7 @@
  * TODO: GET list of producers
  */
 import React from 'react'
-import PropTypes from 'prop-types'
+import PropTypes, { string } from 'prop-types'
 
 import { CButton, CButtonGroup, CCard, CCardBody, CCol, CRow } from '@coreui/react'
 import { CChartLine } from '@coreui/react-chartjs'
@@ -52,10 +52,30 @@ class ProducedStatistic extends React.Component {
        * YEAR: (default) CURRENT_YEAR
        */
       statTimeChosen: [CURRENT_MONTH, CURRENT_YEAR],
+      producer: ['All'],
       labels: null,
       // May get from db
       dataset: [
         12,
+        random(50, 200),
+        random(50, 200),
+        random(50, 200),
+        random(50, 200),
+        random(50, 200),
+        random(50, 200),
+        random(50, 200),
+        random(50, 200),
+        random(50, 200),
+        random(50, 200),
+        random(50, 200),
+        random(50, 200),
+        random(50, 200),
+        random(50, 200),
+        random(50, 200),
+        random(50, 200),
+        random(50, 200),
+        random(50, 200),
+        random(50, 200),
         random(50, 200),
         random(50, 200),
         random(50, 200),
@@ -80,7 +100,7 @@ class ProducedStatistic extends React.Component {
 
   // executed after rendering
   componentDidMount() {
-    this.getData()
+    // this.getData()
     this.setLabels()
   }
 
@@ -154,7 +174,7 @@ class ProducedStatistic extends React.Component {
   setLabels() {
     switch (this.state.statTimeInterval) {
       case MONTH:
-        const [month, year] = this.state.statTimeChosen
+        let [month, year] = this.state.statTimeChosen
         // get number of days
         let labels = [...Array(new Date(year, month + 1, 0).getDate()).keys()]
 
@@ -166,6 +186,26 @@ class ProducedStatistic extends React.Component {
         this.setState({ labels: labels })
         break
 
+      // case QUARTER:
+      //   let [quarter, year_] = this.state.statTimeChosen
+      //   let firstMonth = [...Array(new Date(year_, quarter * 3 + 1, 0).getDate()).keys()]
+      //   firstMonth = firstMonth.map((value, idx) =>
+      //     value.toString().concat('/' + (quarter * 3 + 1).toString()),
+      //   )
+      //   console.log(firstMonth)
+      //   let secondMonth = [...Array(new Date(year_, quarter * 3 + 2, 0).getDate()).keys()]
+      //   secondMonth = secondMonth.map((value, idx) =>
+      //     value.toString().concat('/' + (quarter * 3 + 2).toString()),
+      //   )
+      //   let thirdMonth = [...Array(new Date(year_, quarter * 3 + 3, 0).getDate()).keys()]
+      //   thirdMonth = thirdMonth.map((value, idx) =>
+      //     value.toString().concat('/' + (quarter * 3 + 3).toString()),
+      //   )
+
+      //   let labels_ = [...firstMonth, secondMonth, thirdMonth]
+
+      //   this.setState({ labels: labels_ })
+      //   break
       case YEAR:
         this.setState({ labels: this.props.monthsOfYear })
         break
@@ -193,11 +233,11 @@ class ProducedStatistic extends React.Component {
   }
 
   getDefaultMonth() {
-    return this.state.statTimeInterval === YEAR ? 0 : CURRENT_MONTH
+    return this.state.statTimeInterval === YEAR ? 0 : CURRENT_MONTH + 1
   }
 
   getDefaultQuarter() {
-    return this.state.statTimeInterval === YEAR ? 0 : CURRENT_QUARTER
+    return this.state.statTimeInterval === YEAR ? 0 : CURRENT_QUARTER + 1
   }
 
   render() {

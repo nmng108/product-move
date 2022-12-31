@@ -1,5 +1,5 @@
 /**
- * This component renders table for managing producers/manufactories.
+ * This component renders table for managing distributor.
  */
 import React from 'react'
 
@@ -16,13 +16,11 @@ import {
   CTableRow,
 } from '@coreui/react'
 
-import axios from 'axios'
-
-import ProducerModal from './ProducerModal'
+import DistributorModal from './DistributorModal'
 import { ADD, EDIT, sendRequest } from '../../Utilities'
 import './style.scss'
 
-class Producer extends React.Component {
+class Distributor extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -51,18 +49,18 @@ class Producer extends React.Component {
   }
 
   componentDidMount() {
-    this.getAllProducersInfo()
+    this.getAllProfiles()
   }
 
   // get data from api and setState
-  getAllProducersInfo() {
+  getAllProfiles() {
     sendRequest('/admin/api/cssx/getAll', 'get').then((res) => {
       console.log(res.data)
       this.setState({ dataset: res.data })
     })
   }
 
-  getSpecifiedProducer(id) {
+  getSpecifiedProfile(id) {
     // axios.get('').then()
   }
 
@@ -181,7 +179,7 @@ class Producer extends React.Component {
             </CTable>
           </CCardBody>
         </CCard>
-        <ProducerModal
+        <DistributorModal
           id="producer-profile"
           ref={this.modalRef}
           title={this.state.modalTitle}
@@ -189,10 +187,10 @@ class Producer extends React.Component {
           deleteProfile={(idx) => this.deleteProfile(idx)}
         >
           {' '}
-        </ProducerModal>
+        </DistributorModal>
       </>
     )
   }
 }
 
-export default Producer
+export default Distributor
