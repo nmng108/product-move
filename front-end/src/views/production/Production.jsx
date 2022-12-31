@@ -49,7 +49,7 @@ class Production extends React.Component {
   }
 
   componentDidMount() {
-    this.getAllProfiles()
+    // this.getAllProfiles()
   }
 
   // get data from api and setState

@@ -54,7 +54,7 @@ class Distributor extends React.Component {
 
   // get data from api and setState
   getAllProfiles() {
-    sendRequest('/admin/api/cssx/getAll', 'get').then((res) => {
+    sendRequest('/admin/api/dlpp/getAll', 'get').then((res) => {
       console.log(res.data)
       this.setState({ dataset: res.data })
     })
@@ -80,7 +80,7 @@ class Distributor extends React.Component {
       } else console.log('ref is null')
     } else {
       // send get req then setState/admin/api/cssx/ + id
-      sendRequest(`/admin/api/cssx/${id}`, 'get').then((res) => {
+      sendRequest(`/admin/api/dlpp/${id}`, 'get').then((res) => {
         if (this.modalRef.current) {
           this.modalRef.current.toggle(true, EDIT, { data: res.data[1], index: index })
         }
@@ -117,7 +117,7 @@ class Distributor extends React.Component {
       <>
         <CCard>
           <CCardHeader>
-            <h4 className="float-start">Danh sách nhà máy</h4>
+            <h4 className="float-start">Danh sách nhà phân phối</h4>
             <div className="float-end">
               <CButton
                 className="btn-success"
@@ -135,7 +135,7 @@ class Distributor extends React.Component {
               <CTableHead color="light">
                 <CTableRow>
                   <CTableHeaderCell className="text-center">STT</CTableHeaderCell>
-                  <CTableHeaderCell className="text-center">Nhà máy</CTableHeaderCell>
+                  <CTableHeaderCell className="text-center">Tên</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Ngày hoạt động</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Số lượng nhân công</CTableHeaderCell>
                   <CTableHeaderCell className="text-center">Địa chỉ</CTableHeaderCell>
