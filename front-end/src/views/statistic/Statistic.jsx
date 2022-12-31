@@ -159,7 +159,7 @@ class Statistic extends React.Component {
                 labels: this.state.labels,
                 datasets: [
                   {
-                    label: 'GitHub Commits',
+                    label: 'data...',
                     backgroundColor: '#f87979',
                     data: this.state.dataset,
                     // data: [23, 8, 3, 3, 3, 3, 3, 3, 3, 3, 6, 8],

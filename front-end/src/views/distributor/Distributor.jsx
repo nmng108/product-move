@@ -31,7 +31,7 @@ class Distributor extends React.Component {
       dataset: [
         {
           _id: 102,
-          name: 'Nhà máy A',
+          name: 'Đại lý A',
           date_register: 'Jan 8, 2020',
           date_active: '...-2020',
           address: 'Đông Anh, Hà Nội',
@@ -39,7 +39,7 @@ class Distributor extends React.Component {
           namePerson: 'Lê Thị A', // representative
           contact: '0397591234',
           representativeID: '02394081423',
-          username: 'producera',
+          username: 'dista',
           password: '123',
         },
       ],

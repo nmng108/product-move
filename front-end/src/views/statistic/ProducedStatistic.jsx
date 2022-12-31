@@ -137,36 +137,6 @@ class ProducedStatistic extends React.Component {
         data: this.state.dataset,
         fill: true,
       },
-      // {
-      //   label: 'My Second dataset',
-      //   backgroundColor: 'transparent',
-      //   borderColor: getStyle('--cui-success'),
-      //   pointHoverBackgroundColor: getStyle('--cui-success'),
-      //   borderWidth: 2,
-      //   data: [
-      //     random(50, 200),
-      //     random(50, 200),
-      //     random(50, 200),
-      //     random(50, 200),
-      //     random(50, 200),
-      //     random(50, 200),
-      //     random(50, 200),
-      //     random(50, 200),
-      //     random(50, 200),
-      //     random(50, 200),
-      //     random(50, 200),
-      //     random(50, 200),
-      //   ],
-      // },
-      {
-        label: 'My Third dataset',
-        backgroundColor: 'transparent',
-        borderColor: getStyle('--cui-danger'),
-        pointHoverBackgroundColor: getStyle('--cui-danger'),
-        borderWidth: 1,
-        borderDash: [8, 5],
-        data: Array(12).fill(0),
-      },
     ]
   }
 
@@ -315,8 +285,8 @@ class ProducedStatistic extends React.Component {
                 <select name="selected-producer" id="stat-for-producer" className="">
                   {/* TODO: get list of producers and render */}
                   <option value="">All</option>
-                  <option value="">p alkldf 1</option>
-                  <option value="">pdfg ghd 2</option>
+                  <option value="">p1</option>
+                  <option value="">p2</option>
                 </select>
               </CCol>
               <CCol sm={7} className="d-md-block">
