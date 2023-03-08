@@ -80,9 +80,9 @@ class Distributor extends React.Component {
       } else console.log('ref is null')
     } else {
       // send get req then setState/admin/api/cssx/ + id
-      sendRequest(`/admin/api/dlpp/${id}`, 'get').then((res) => {
+      sendRequest(`/admin/api/dlpp/getADLPP/${id}`, 'get').then((res) => {
         if (this.modalRef.current) {
-          this.modalRef.current.toggle(true, EDIT, { data: res.data[1], index: index })
+          this.modalRef.current.toggle(true, EDIT, { data: res.data, index: index })
         }
       })
     }

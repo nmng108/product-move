@@ -82,7 +82,7 @@ class Production extends React.Component {
       // send get req then setState/admin/api/cssx/ + id
       sendRequest(`/admin/api/product/${id}`, 'get').then((res) => {
         if (this.modalRef.current) {
-          this.modalRef.current.toggle(true, EDIT, { data: res.data[1], index: index })
+          this.modalRef.current.toggle(true, EDIT, { data: res.data, index: index })
         }
       })
     }

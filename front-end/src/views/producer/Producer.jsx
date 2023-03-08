@@ -51,18 +51,18 @@ class Producer extends React.Component {
   }
 
   componentDidMount() {
-    this.getAllProducersInfo()
+    this.getAllProfiles()
   }
 
   // get data from api and setState
-  getAllProducersInfo() {
+  getAllProfiles() {
     sendRequest('/admin/api/cssx/getAll', 'get').then((res) => {
       console.log(res.data)
       this.setState({ dataset: res.data })
     })
   }
 
-  getSpecifiedProducer(id) {
+  getSpecifiedProfile(id) {
     // axios.get('').then()
   }
 
@@ -82,9 +82,10 @@ class Producer extends React.Component {
       } else console.log('ref is null')
     } else {
       // send get req then setState/admin/api/cssx/ + id
-      sendRequest(`/admin/api/cssx/${id}`, 'get').then((res) => {
+      sendRequest(`/admin/api/cssx/getACSSX/${id}`, 'get').then((res) => {
         if (this.modalRef.current) {
-          this.modalRef.current.toggle(true, EDIT, { data: res.data[1], index: index })
+          // console.log('response: \n', res.data)
+          this.modalRef.current.toggle(true, EDIT, { data: res.data, index: index })
         }
       })
     }
@@ -99,6 +100,7 @@ class Producer extends React.Component {
     let dataset = [...this.state.dataset]
     if (index === -1) dataset = [modifiedRecord, ...dataset]
     else dataset[index] = modifiedRecord
+    console.log(dataset)
     this.setState({ dataset: dataset })
   }
 

@@ -20,6 +20,7 @@ class ProducerModal extends React.Component {
       index: -1,
       data: null,
       originalData: null,
+      notification: 'text-danger',
     }
   }
 
@@ -108,17 +109,56 @@ class ProducerModal extends React.Component {
     let isConfirmed = window.confirm('Bạn chắc chắn muốn lưu không?')
     if (isConfirmed) {
       this.setEditMode(false)
+      if (this.isAddMode()) {
+        sendRequest('/admin/api/cssx/create', 'post', this.state.data).then((res) => {
+          if (res.status === 201) {
+            let user_info = {
+              username: this.state.data.username,
+              password: this.state.data.username,
+              name: this.state.data.namePerson,
+              numberphone: this.state.data.contact,
+              role: 'producer',
+              // lack of 2 field: email and address
+            }
+            sendRequest('/admin/api/user/create', 'post', user_info)
+              .then((res) => {
+                this.toggle(false)
+                this.resetModal()
+                // then modify the record in table
+                this.props.setProfile(this.state.data, index)
 
-      sendRequest('/admin/api/cssx/create', 'post', this.state.data).then((res) => {
-        if (res.status === 201) {
-          // then modify the record in table
-          this.toggle(false)
-          this.resetModal()
-          this.props.setProfile(this.state.data, index)
-        } else {
-          this.setEditMode(true)
-        }
-      })
+                this.setState({ notification: 'Tạo mới thành công', notifClass: 'text-success' })
+                setTimeout(() => {
+                  this.setState({ notification: '' })
+                  this.toggle(false)
+                  this.resetModal()
+                }, 2000)
+              })
+              .catch((err) => {
+                console.log(err)
+                this.setState({
+                  notification: 'Tạo mới không thành công',
+                  notifClass: 'text-danger',
+                })
+                setTimeout(() => this.setState({ notification: '' }), 2000)
+              })
+          } else {
+            this.setEditMode(true)
+          }
+        })
+      } else if (this.state.type === EDIT) {
+        sendRequest(`/admin/api/cssx/update/${this.state.data._id}`, 'put', this.state.data)
+          .then((res) => {
+            this.toggle(false)
+            this.resetModal()
+            // then modify the record in table
+            this.props.setProfile(this.state.data, index)
+          })
+          .catch((err) => {
+            this.setEditMode(true)
+            console.log(err)
+          })
+      }
     }
   }
 
@@ -150,7 +190,7 @@ class ProducerModal extends React.Component {
 
   render() {
     let profile = this.state.data || {}
-    console.log(profile)
+    console.log('profile:\n', profile)
     return (
       // turn to form or able to edit when open edit mode
       <CModal
@@ -208,7 +248,7 @@ class ProducerModal extends React.Component {
               />
             </CRow>
             <CRow>
-              <label className="form-label" htmlFor="input-lauchDate">
+              <label className="form-label" htmlFor="input-launchDate">
                 Ngày đi vào hoạt động
               </label>
               <input
@@ -249,7 +289,7 @@ class ProducerModal extends React.Component {
               </label>
               <input
                 className="form-input"
-                type="number"
+                type="text"
                 defaultValue={profile.representativeID}
                 disabled={!this.state.editMode}
                 onChange={(e) => this.handleInputOnChange('representativeID', e.target.value)}

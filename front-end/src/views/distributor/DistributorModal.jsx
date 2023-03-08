@@ -110,7 +110,7 @@ class DistributorModal extends React.Component {
     if (isConfirmed) {
       this.setEditMode(false)
 
-      sendRequest('/admin/api/ttbh/create', 'post', this.state.data)
+      sendRequest('/admin/api/dlpp/create', 'post', this.state.data)
         .then((res) => {
           if (res.status === 201) {
             // then modify the record in table
@@ -140,7 +140,7 @@ class DistributorModal extends React.Component {
     let isConfirmed = window.confirm('Bạn chắc chắn muốn xóa không?')
     if (isConfirmed) {
       // send DELETE request, then remove the record
-      sendRequest(`/admin/api/ttbnh/delete/${this.state.data._id}`)
+      sendRequest(`/admin/api/dlpp/delete/${this.state.data._id}`)
         .then((res) => {
           if (res.status === 200) {
             this.toggle(false)

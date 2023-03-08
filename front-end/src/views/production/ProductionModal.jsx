@@ -174,7 +174,7 @@ class ProductionModal extends React.Component {
 
   render() {
     let profile = this.state.data || {}
-    console.log(profile)
+
     return (
       // turn to form or able to edit when open edit mode
       <CModal
@@ -228,9 +228,9 @@ class ProductionModal extends React.Component {
                 type="file"
                 accept="image/png, image/jpeg"
                 alt="electrical bike"
-                defaultValue={profile.path}
+                defaultValue={profile.image}
                 disabled={!this.state.editMode}
-                onChange={(e) => this.handleInputOnChange('path', e.target.value)}
+                onChange={(e) => this.handleInputOnChange('image', e.target.value)}
               />
             </CRow>
             <CRow>
