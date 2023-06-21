@@ -1,8 +1,8 @@
 import express from "express";
-import { UserController } from "../controllers";
+import { UserController } from "@/controllers";
 
-export function addUserRoutes(app: express.Express) {
-	app.use('/api/auth', router);
+export function addUserRoutes(app: express.Application) {
+	app.use('/api/auth', router);app.use("", )
 	app.get('/api/user', UserController.getUser)
 	app.get('/api/user/:username', UserController.getUser)
 }
