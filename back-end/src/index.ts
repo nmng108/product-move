@@ -4,6 +4,7 @@ import http from "http";
 import mongoose from "mongoose";
 import "module-alias/register";
 import config from "./config";
+import "./config/execute";
 import { addUserRoutes } from "./routers";
 
 const app = express();
