@@ -17,11 +17,10 @@ const defaultEnv = {
 
 // remove all env variables with empty string values before sanitizing them with envalid
 Object.entries(defaultEnv).forEach(([envName, defaultValue]) => {
-	if (process.env[envName] == '' && defaultValue == '') {
+	if (process.env[envName] == '') {
+		if (defaultValue == '') return
 		delete process.env[envName];
 	}
-
-	if (envName == "DB_URI") delete process.env[envName];
 })
 
 // scheme validator
@@ -53,7 +52,10 @@ const cleanedEnv = cleanEnv(
 	process.env,
 	{
 		// Server information
-		NODE_ENV: str({ choices: ["development", "test", "staging", "production"] }),
+		NODE_ENV: str({
+			choices: ["development", "test", "staging", "production"],
+			default: defaultEnv.NODE_ENV,
+		}),
 		PORT: port({ default: defaultEnv.PORT }),
 		// Database connection
 		DB_URI: str({ default: defaultEnv.DB_URI, }),
@@ -90,13 +92,20 @@ DB_URI = DB_URI.replace("[:port]", cleanedEnv.DB_PORT != "" ? `:${cleanedEnv.DB_
 DB_URI = DB_URI.replace("[schema]", cleanedEnv.DB_NAME || "");
 DB_URI = DB_URI.replace("[?querystring]", `?${cleanedEnv.DB_QUERYSTRING}`);
 
-console.log(DB_URI)
+// console.log(DB_URI) // check resulting URI
 
 export default {
 	IP_ADDRESS,
 	PORT: parseInt(cleanedEnv.PORT),
 	DB_URI,
+	DB_HOST: cleanedEnv.DB_HOST + (cleanedEnv.DB_PORT == "" ? "" : ':') + cleanedEnv.DB_PORT,
 	execute: () => {
-		process.env = { ...process.env, IP_ADDRESS, PORT: cleanedEnv.PORT.toString(), DB_URI };
+		process.env = {
+			...process.env,
+			IP_ADDRESS,
+			PORT: cleanedEnv.PORT.toString(),
+			DB_URI,
+			DB_HOST: cleanedEnv.DB_HOST + (cleanedEnv.DB_PORT == "" ? "" : ':') + cleanedEnv.DB_PORT
+		};
 	},
 };
