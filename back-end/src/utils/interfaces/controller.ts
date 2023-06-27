@@ -2,22 +2,22 @@ import { Router } from "express";
 import url from "url";
 
 export interface IController {
-	getPath(): string;
+	makePath(): string;
 	getRouter(): Router;
 }
 
-export default class Controller implements IController {
-	protected path: string; // definite assignment assertion
+export default abstract class Controller implements IController {
+	protected collection: string; // definite assignment assertion
 	protected router: Router = Router();
 
-	public constructor(path: string = '') {
-		this.path = Controller.normalizePath(path);
+	protected constructor(collection: string = '') {
+		this.collection = Controller.normalizePath(collection);
 	}
 
-	public getPath(): string;
-	public getPath(resource: string): string;
-	public getPath(resource?: string): string {
-		return resource ? this.path + Controller.normalizePath(resource) : this.path;
+	public makePath(): string;
+	public makePath(resource: string): string;
+	public makePath(resource?: string): string {
+		return resource ? this.collection + Controller.normalizePath(resource) : this.collection;
 	};
 
 	public getRouter(): Router {
@@ -25,7 +25,7 @@ export default class Controller implements IController {
 	};
 
 	protected static normalizePath(path: string) {
-		if (/^((\/[\w_\.\$\-]+)+\/?)?$/.test(path)) {
+		if (/^((\/[\w_\.\$#\-]+)+\/?)?$/.test(path)) {
 			return path.endsWith('/') ? path.slice(0, path.length - 1) : path;
 		}
 
@@ -35,11 +35,3 @@ export default class Controller implements IController {
 		return path;
 	}
 }
-
-let path = "localhost.com.vn/api//users///d";
-
-// let extracted = urlStr.match(/[a-zA-Z\+]+:\/\/[\w\.]+/);
-// extracted ? console.log(urlStr.replace(extracted[0], '')) : null;
-console.log(url.resolve(path, '/abc'))
-// let urlInstance = new url.URL("sub.localhost.com.vn//api//users///d", 'http://test.vn');
-// console.log(urlInstance);

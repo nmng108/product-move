@@ -1,152 +1,161 @@
 import bcrypt from "bcrypt";
-import { Request, Response, Router } from "express";
+import { Request, Response } from "express";
 import Controller from "utils/interfaces/controller";
 import UserModel from "resources/user/user.model";
-import { HttpException } from "utils/exceptions";
+import { ErrorResponseBody, errorResponseBody, HttpException } from "utils/exceptions";
+import {
+	ChangePasswordRequestBody,
+	changePasswordValidation,
+	CreateUserRequestBody,
+	createValidation,
+	SuccessResponseBody
+} from "./user.validation";
+import UserService from "./user.service";
 
+/**
+ * Controller/Management class for the 'users' collection.
+ */
 export class UserController extends Controller {
-	protected path: string = '/users';
+	protected static userService = new UserService();
 
-	constructor() {
-		super();
-		this.router.post(this.path, UserController.create);
-		this.router.post(this.getPath('/signin'), UserController.signin);
-		this.router.get(this.getPath('/logout'), UserController.logout);
-		this.router.patch(this.path, UserController.changeInformation); // choose merge-patch or json-patch
-		this.router.patch(this.path, UserController.changePassword); // choose merge-patch or json-patch
-		this.router.delete(this.getPath('/:username'), UserController.delete); // by username or id
-		this.router.get(this.path, UserController.getUser);
-		this.router.get(this.getPath('/:username'), UserController.getUser);
+	// Defines collection name & routes.
+	public constructor() {
+		super("/users");
+		// authentication routes
+		this.router.post(this.makePath('/sign-in'), UserController.signin);
+		this.router.get(this.makePath('/log-out'), UserController.logout);
+		// 'write data' routes
+		this.router.post(this.collection, createValidation, UserController.create);
+		this.router.patch(this.collection, UserController.changeInformation); // json-patch
+		this.router.patch(this.makePath('/password'), changePasswordValidation, UserController.changePassword); // merge-patch
+		this.router.delete(this.makePath('/:username'), UserController.delete);
+		// 'retrieve data' route
+		this.router.get(this.collection, UserController.getUsers);
+		this.router.get(this.makePath('/:username'), UserController.getUser); // by username or id
 	}
 
-	private static async create(request: Request, response: Response) {
+	private static async create(request: Request<any, any, CreateUserRequestBody>,
+								response: Response<SuccessResponseBody | ErrorResponseBody>) {
 		try {
-			let { username, fullname, email, phone, role, password, re_password } = request.body
-
-			if (re_password != password) {
-				throw new HttpException(400, "The confirmation password doesn't match.");
-			}
-
-			const existing = await UserModel.findOne({ username });
-			if (existing) throw new HttpException(409)
-			let hashedPassword = await bcrypt.genSalt(8)
-			hashedPassword = await bcrypt.hash(password, hashedPassword)
-
-			const newUser = new UserModel({ username, fullname, email, phone, role, password: hashedPassword })
-			await newUser.save()
-			response.status(201).json({ username })
+			const newUser = await UserController.userService.create(request.body);
+			console.log(newUser); // CHECK
+			const { username, role } = newUser;
+			response.status(201).send({ message: 'succeeded', data: { username, role } });
 		} catch (error: any) {
-			console.log(error)
+			console.log(error);
 
 			if (error instanceof HttpException) {
-				response.status(error.statusCode).json({
-					status_code: error.statusCode,
-					error: error.message,
-				});
+				error.send(response);
 			} else {
-				response.status(500).json({
-					status_code: 500,
-					error: error.message,
-				});
+				response.status(500).json(errorResponseBody(500, error));
 			}
 		}
 	}
 
-	private static async signin(request: Request, response: Response) {
+	private static async signin(request: Request<{}, {}, { username: string, password: string }>,
+								response: Response<SuccessResponseBody | ErrorResponseBody>) {
 		try {
 			let { username, password } = request.body
 			let user = await UserModel.findOneAndUpdate({ username }, { token: "tokenxxskl" })
 
-			if (!user) throw new HttpException(404, "User not found.")
+			if (!user) throw new HttpException(404, "User not found.");
 			else {
-				const isMatched = await bcrypt.compare(password, user.password as string)
-				if (isMatched) {
-					user = await UserModel.findOne({ username })
+				const matched = await bcrypt.compare(password, user.password as string);
 
-					response.json(user)
+				if (matched) {
+					const {role, fullname, email } = user;
+					response.status(200).json({ message: "signed in", data: { username, role, fullname } });
 				} else {
-					throw new HttpException(400, "Wrong password")
+					throw new HttpException(400, "Wrong password");
 				}
 			}
 		} catch (error: any) {
-			if (error instanceof HttpException) {
-				response.status(error.statusCode).json({
-					status_code: error.statusCode,
-					error: error.message,
-				})
-			} else {
-				response.status(500).send('...');
+			if (error instanceof HttpException) error.send(response);
+			else {
+				response.status(500).json(errorResponseBody(500, error))
 			}
 		}
 	}
 
-	private static async logout(request: Request, response: Response) {
+	private static async logout(request: Request, response: Response<SuccessResponseBody | ErrorResponseBody>) {
 		try {
-			let { username } = request.body
-			let user = await UserModel.findOneAndUpdate({ username }, { token: "" })
+			let { username } = request.body;
+			let user = await UserModel.findOneAndUpdate({ username }, { token: "" });
+			if (!user) throw new HttpException(404, "User not found");
 
-			if (!user) throw new HttpException(404, "User not found")
-
-			user = await UserModel.findOne({ username })
-			response.status(200).json(user)
+			response.status(200).json({ message: "log out", data: user });
 		} catch (error: any) {
 			if (error instanceof HttpException) {
-				response.status(error.statusCode).json({
-					status_code: error.statusCode,
-					error: error.message,
-				})
+				error.send(response);
 			} else {
-				response.status(500).send('...');
+				response.status(500).json(errorResponseBody(500, error))
 			}
 		}
 	}
 
-	private static async changePassword(request: Request, response: Response) {
-		response.status(204).send('...')
-	}
-
-	private static async changeInformation(request: Request, response: Response) {
-		response.status(204).send('...')
-	}
-
-	private static async delete(request: Request, response: Response) {
-		let deletedRecord
-
-		if (typeof request.params.username == "string") {
-			deletedRecord = await UserModel.findOneAndDelete({ username: request.params.username })
-				.catch(reason => response.status(400).send())
-		} else if (typeof request.params.id == "string") {
-			deletedRecord = await UserModel.findOneAndDelete({ _id: request.params.id })
-				.catch(reason => response.status(400).send())
-		}
-
-		response.status(200).send(deletedRecord.username)
-	}
-
-	private static async getUser(request: Request, response: Response) {
+	private static async changePassword(request: Request<{}, {}, ChangePasswordRequestBody>,
+										response: Response<SuccessResponseBody | ErrorResponseBody>) {
 		try {
-			// console.log(request.headers.authorization)
-			let result: object | null
+			let {
+				username,
+				old_password: oldPassword,
+				new_password: newPassword,
+			} = request.body;
 
-			if (typeof request.params.username == 'string') {
-				result = await UserModel.where({ username: request.params.username }).findOne()
-			} else if (typeof request.params.id == 'string') {
-				result = await UserModel.where({ _id: request.params.id }).findOne()
-			} else {
-				result = await UserModel.find()
-			}
+			await UserController.userService.changePassword({ username, oldPassword, newPassword });
+			response.status(200).json({ message: "Changing password succeeded" });
 
-			if (result) response.json(result)
-			else throw new HttpException(404, "User not found")
-			// const allUsers = UserModel.
+		} catch (error: any) {
+			if (error instanceof HttpException) error.send(response);
+			else response.status(500).json(errorResponseBody(500, error));
+		}
+	}
+
+	private static async changeInformation(request: Request,
+										   response: Response<SuccessResponseBody | ErrorResponseBody>) {
+		response.status(200).send({ message: "unchanged" })
+	}
+
+	private static async delete(request: Request<{ username: string }>,
+								response: Response<SuccessResponseBody | ErrorResponseBody>) {
+		let deletedRecord: any;
+
+		deletedRecord = await UserModel.findOneAndDelete({ username: request.params.username })
+			.catch(reason => response.status(400).send());
+
+		response.status(200).json(deletedRecord);
+	}
+
+	private static async getUser(request: Request<{ username: string }>,
+								 response: Response<SuccessResponseBody | ErrorResponseBody>) {
+		try {
+			let result = await UserController.userService.retrievesOne(request.params.username);
+			if (result) response.status(200).json({ message: 'fetched', data: result });
+
 		} catch (error: any) {
 			if (error instanceof HttpException) {
-				response.status(error.statusCode).json({
-					status_code: error.statusCode,
-					error: error.message,
-				})
+				response.status(error.statusCode).json(error.responseBody);
 			} else {
-				response.status(500).send('...');
+				response.status(500).json(errorResponseBody(500, error));
+			}
+		}
+	}
+
+	/**
+	 * Get all records based on specified criteria: none, role or set of usernames.
+	 */
+	private static async getUsers(request: Request<{}, {}, {}, { role: string, usernames: string }>,
+								  response: Response<any | ErrorResponseBody>) {
+		try {
+			let result = await UserController.userService.retrievesMany(request.query);
+			// exceptions should be caught in the retrievesMany() call; now only make response
+			if (result) response.status(result.length ? 200 : 204).json(result);
+
+		} catch (error: any) {
+			if (error instanceof HttpException) {
+				response.status(error.statusCode).json(error.responseBody);
+			} else {
+				response.status(500).json(errorResponseBody(500, error));
 			}
 		}
 	}
