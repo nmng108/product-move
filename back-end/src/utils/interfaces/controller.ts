@@ -1,10 +1,16 @@
-import { Router } from "express";
+import { NextFunction, Request, Response, Router } from "express";
 import url from "url";
 
 export interface IController {
 	makePath(): string;
+
 	getRouter(): Router;
 }
+
+type ControllerMainAction<ReqT extends Request, ResponseBody = any> = (
+	request: ReqT,
+	response: Response<ResponseBody>
+) => void;
 
 export default abstract class Controller implements IController {
 	protected collection: string; // definite assignment assertion
@@ -23,6 +29,22 @@ export default abstract class Controller implements IController {
 	public getRouter(): Router {
 		return this.router;
 	};
+
+	/**
+	 * Parameterizes/Generics Request Type & Response body
+	 * @param action {ControllerMainAction}
+	 */
+	public static method<ReqT extends Request, ResponseBody = any>(
+		action: ControllerMainAction<ReqT, ResponseBody>
+	): (request: ReqT, response: Response<ResponseBody>, next: NextFunction) => Promise<void> {
+		return async function (request: ReqT, response: Response<ResponseBody>, next: NextFunction) {
+			try {
+				await action(request, response);
+			} catch (error: any) {
+				next(error);
+			}
+		}
+	}
 
 	protected static normalizePath(path: string) {
 		if (/^((\/[\w_\.\$#\-]+)+\/?)?$/.test(path)) {

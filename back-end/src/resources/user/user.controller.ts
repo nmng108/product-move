@@ -34,21 +34,19 @@ export class UserController extends Controller {
 		this.router.get(this.makePath('/:username'), UserController.getUser); // by username or id
 	}
 
-	private static async create(request: Request<any, any, CreateUserRequestBody>,
-								response: Response<SuccessResponseBody | ErrorResponseBody>, next: NextFunction) {
-		try {
+	private static create = UserController.method<Request<any, any, CreateUserRequestBody>,
+		SuccessResponseBody | ErrorResponseBody>(
+		async function (request, response) {
 			const newUser = await UserController.userService.create(request.body);
 			console.log(newUser); // CHECK
 			const { username, role } = newUser;
 			response.status(201).send({ message: 'succeeded', data: { username, role } });
-		} catch (error: any) {
-			next(error);
 		}
-	}
+	)
 
-	private static async signin(request: Request<{}, {}, { username: string, password: string }>,
-								response: Response<SuccessResponseBody | ErrorResponseBody>, next: NextFunction) {
-		try {
+	private static signin = UserController.method<Request<{}, {}, { username: string, password: string }>,
+		SuccessResponseBody | ErrorResponseBody>(
+		async function (request, response) {
 			let { username, password } = request.body
 			let user = await UserModel.findOneAndUpdate({ username }, { token: "tokenxxskl" })
 
@@ -63,26 +61,23 @@ export class UserController extends Controller {
 					throw new HttpException(400, "Wrong password");
 				}
 			}
-		} catch (error: any) {
-			next(error);
 		}
-	}
+	)
 
-	private static async logout(request: Request, response: Response<SuccessResponseBody | ErrorResponseBody>, next: NextFunction) {
-		try {
+	private static logout = UserController.method<Request,
+		SuccessResponseBody | ErrorResponseBody>(
+		async function (request, response) {
 			let { username } = request.body;
 			let user = await UserModel.findOneAndUpdate({ username }, { token: "" });
 			if (!user) throw new HttpException(404, "User not found");
 
 			response.status(200).json({ message: "log out", data: user });
-		} catch (error: any) {
-			next(error);
 		}
-	}
+	)
 
-	private static async changePassword(request: Request<{}, {}, ChangePasswordRequestBody>,
-										response: Response<SuccessResponseBody | ErrorResponseBody>, next: NextFunction) {
-		try {
+	private static changePassword = UserController.method<Request<{}, {}, ChangePasswordRequestBody>,
+		SuccessResponseBody | ErrorResponseBody>(
+		async function (request, response) {
 			let {
 				username,
 				old_password: oldPassword,
@@ -91,50 +86,44 @@ export class UserController extends Controller {
 
 			await UserController.userService.changePassword({ username, oldPassword, newPassword });
 			response.status(200).json({ message: "Changing password succeeded" });
-
-		} catch (error: any) {
-			next(error);
 		}
-	}
+	)
 
-	private static async changeInformation(request: Request,
-										   response: Response<SuccessResponseBody | ErrorResponseBody>, next: NextFunction) {
-		response.status(200).send({ message: "unchanged" })
-	}
+	private static changeInformation = UserController.method<Request<{ username: string }>,
+		SuccessResponseBody | ErrorResponseBody>(
+		async function (request, response) {
+			response.status(200).send({ message: "unchanged" })
+		}
+	)
 
-	private static async delete(request: Request<{ username: string }>,
-								response: Response<SuccessResponseBody | ErrorResponseBody>, next: NextFunction) {
-		let deletedRecord: any;
+	private static delete = UserController.method<Request<{ username: string }>,
+		SuccessResponseBody | ErrorResponseBody>(
+		async function (request, response) {
+			let deletedRecord = await UserModel.findOneAndDelete({ username: request.params.username })
+			if (deletedRecord) response.status(200).json({ message: "deleted", data: deletedRecord });
+			else throw new HttpException(404);
+		}
+	)
 
-		deletedRecord = await UserModel.findOneAndDelete({ username: request.params.username })
-			.catch(reason => response.status(400).send());
-
-		response.status(200).json(deletedRecord);
-	}
-
-	private static async getUser(request: Request<{ username: string }>,
-								 response: Response<SuccessResponseBody | ErrorResponseBody>, next: NextFunction) {
-		try {
+	private static getUser = UserController.method<Request<{ username: string }>,
+		SuccessResponseBody | ErrorResponseBody>(
+		async function (request, response) {
 			let result = await UserController.userService.retrievesOne(request.params.username);
 			if (result) response.status(200).json({ message: 'fetched', data: result });
-
-		} catch (error: any) {
-			next(error);
 		}
-	}
+	)
+
 
 	/**
 	 * Get all records based on specified criteria: none, role or set of usernames.
 	 */
-	private static async getUsers(request: Request<{}, {}, {}, { role: string, usernames: string }>,
-								  response: Response<any | ErrorResponseBody>, next: NextFunction) {
-		try {
+	private static getUsers = UserController.method<Request<{}, {}, {}, { role: string, usernames: string }>,
+		Array<any> | ErrorResponseBody>(
+		async function (request, response) {
 			let result = await UserController.userService.retrievesMany(request.query);
 			// exceptions should be caught in the retrievesMany() call; now only make response
 			if (result) response.status(result.length ? 200 : 204).json(result);
-
-		} catch (error: any) {
-			next(error);
 		}
-	}
+	)
+
 }
