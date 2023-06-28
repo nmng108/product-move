@@ -84,15 +84,7 @@ class UserService {
 	 * Query user by username.
 	 */
 	public async retrievesOne(username: string): Promise<any> {
-		let result: any;
-		console.log("run 0")
-
-		result = await UserModel.where({ username: { $in: [ username ] } }).findOne();
-		console.log("run 1")
-		if (!result) {
-			// allows to query by _id
-			result = await UserModel.findOne({ _id: username });
-		}
+		let result: any = await UserModel.where({ username: { $in: [ username ] } }).findOne();
 
 		if (result) return result;
 		else throw new HttpException(404, "User not found");

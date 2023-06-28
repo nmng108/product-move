@@ -1,8 +1,8 @@
 import bcrypt from "bcrypt";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import Controller from "utils/interfaces/controller";
 import UserModel from "resources/user/user.model";
-import { ErrorResponseBody, errorResponseBody, HttpException } from "utils/exceptions";
+import { ErrorResponseBody, HttpException } from "utils/exceptions";
 import {
 	ChangePasswordRequestBody,
 	changePasswordValidation,
@@ -35,25 +35,19 @@ export class UserController extends Controller {
 	}
 
 	private static async create(request: Request<any, any, CreateUserRequestBody>,
-								response: Response<SuccessResponseBody | ErrorResponseBody>) {
+								response: Response<SuccessResponseBody | ErrorResponseBody>, next: NextFunction) {
 		try {
 			const newUser = await UserController.userService.create(request.body);
 			console.log(newUser); // CHECK
 			const { username, role } = newUser;
 			response.status(201).send({ message: 'succeeded', data: { username, role } });
 		} catch (error: any) {
-			console.log(error);
-
-			if (error instanceof HttpException) {
-				error.send(response);
-			} else {
-				response.status(500).json(errorResponseBody(500, error));
-			}
+			next(error);
 		}
 	}
 
 	private static async signin(request: Request<{}, {}, { username: string, password: string }>,
-								response: Response<SuccessResponseBody | ErrorResponseBody>) {
+								response: Response<SuccessResponseBody | ErrorResponseBody>, next: NextFunction) {
 		try {
 			let { username, password } = request.body
 			let user = await UserModel.findOneAndUpdate({ username }, { token: "tokenxxskl" })
@@ -63,21 +57,18 @@ export class UserController extends Controller {
 				const matched = await bcrypt.compare(password, user.password as string);
 
 				if (matched) {
-					const {role, fullname, email } = user;
+					const { role, fullname, email } = user;
 					response.status(200).json({ message: "signed in", data: { username, role, fullname } });
 				} else {
 					throw new HttpException(400, "Wrong password");
 				}
 			}
 		} catch (error: any) {
-			if (error instanceof HttpException) error.send(response);
-			else {
-				response.status(500).json(errorResponseBody(500, error))
-			}
+			next(error);
 		}
 	}
 
-	private static async logout(request: Request, response: Response<SuccessResponseBody | ErrorResponseBody>) {
+	private static async logout(request: Request, response: Response<SuccessResponseBody | ErrorResponseBody>, next: NextFunction) {
 		try {
 			let { username } = request.body;
 			let user = await UserModel.findOneAndUpdate({ username }, { token: "" });
@@ -85,16 +76,12 @@ export class UserController extends Controller {
 
 			response.status(200).json({ message: "log out", data: user });
 		} catch (error: any) {
-			if (error instanceof HttpException) {
-				error.send(response);
-			} else {
-				response.status(500).json(errorResponseBody(500, error))
-			}
+			next(error);
 		}
 	}
 
 	private static async changePassword(request: Request<{}, {}, ChangePasswordRequestBody>,
-										response: Response<SuccessResponseBody | ErrorResponseBody>) {
+										response: Response<SuccessResponseBody | ErrorResponseBody>, next: NextFunction) {
 		try {
 			let {
 				username,
@@ -106,18 +93,17 @@ export class UserController extends Controller {
 			response.status(200).json({ message: "Changing password succeeded" });
 
 		} catch (error: any) {
-			if (error instanceof HttpException) error.send(response);
-			else response.status(500).json(errorResponseBody(500, error));
+			next(error);
 		}
 	}
 
 	private static async changeInformation(request: Request,
-										   response: Response<SuccessResponseBody | ErrorResponseBody>) {
+										   response: Response<SuccessResponseBody | ErrorResponseBody>, next: NextFunction) {
 		response.status(200).send({ message: "unchanged" })
 	}
 
 	private static async delete(request: Request<{ username: string }>,
-								response: Response<SuccessResponseBody | ErrorResponseBody>) {
+								response: Response<SuccessResponseBody | ErrorResponseBody>, next: NextFunction) {
 		let deletedRecord: any;
 
 		deletedRecord = await UserModel.findOneAndDelete({ username: request.params.username })
@@ -127,17 +113,13 @@ export class UserController extends Controller {
 	}
 
 	private static async getUser(request: Request<{ username: string }>,
-								 response: Response<SuccessResponseBody | ErrorResponseBody>) {
+								 response: Response<SuccessResponseBody | ErrorResponseBody>, next: NextFunction) {
 		try {
 			let result = await UserController.userService.retrievesOne(request.params.username);
 			if (result) response.status(200).json({ message: 'fetched', data: result });
 
 		} catch (error: any) {
-			if (error instanceof HttpException) {
-				response.status(error.statusCode).json(error.responseBody);
-			} else {
-				response.status(500).json(errorResponseBody(500, error));
-			}
+			next(error);
 		}
 	}
 
@@ -145,18 +127,14 @@ export class UserController extends Controller {
 	 * Get all records based on specified criteria: none, role or set of usernames.
 	 */
 	private static async getUsers(request: Request<{}, {}, {}, { role: string, usernames: string }>,
-								  response: Response<any | ErrorResponseBody>) {
+								  response: Response<any | ErrorResponseBody>, next: NextFunction) {
 		try {
 			let result = await UserController.userService.retrievesMany(request.query);
 			// exceptions should be caught in the retrievesMany() call; now only make response
 			if (result) response.status(result.length ? 200 : 204).json(result);
 
 		} catch (error: any) {
-			if (error instanceof HttpException) {
-				response.status(error.statusCode).json(error.responseBody);
-			} else {
-				response.status(500).json(errorResponseBody(500, error));
-			}
+			next(error);
 		}
 	}
 }

@@ -5,6 +5,7 @@ import cors from "cors";
 import helmet from "helmet";
 import Controller from "utils/interfaces/controller";
 import config from "utils/config";
+import { HttpErrorHandlerMiddleware } from "middleware";
 
 class App {
 	private port: number;
@@ -14,6 +15,7 @@ class App {
 		this.port = port ?? config.PORT;
 		this.initializeMiddleware();
 		this.initializeRouter(controllers);
+		this.initializeErrorHandler();
 	}
 
 	public getApp(): express.Application {
@@ -34,10 +36,6 @@ class App {
 		}
 	}
 
-	private initializeRouter(controllers: Controller[]) {
-		controllers.forEach((controller) => this.express.use("/api", controller.getRouter()))
-	}
-
 	private initializeMiddleware() {
 		// Handle incoming request
 		this.express.use(express.json({ limit: "10mb", type: [
@@ -52,6 +50,14 @@ class App {
 		this.express.use(compression());
 		this.express.use(helmet());
 		this.express.use(cors());
+	}
+
+	private initializeRouter(controllers: Controller[]) {
+		controllers.forEach((controller) => this.express.use("/api", controller.getRouter()))
+	}
+
+	private initializeErrorHandler() {
+		this.express.use(HttpErrorHandlerMiddleware)
 	}
 }
 
